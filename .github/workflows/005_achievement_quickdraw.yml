@@ -1,0 +1,49 @@
+name: 005 - Achievement Quickdraw 🏎️
+
+on:
+  workflow_dispatch:
+
+jobs:
+  quickdraw:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Create GitHub Issue
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+        run: |
+          TITLE="Quickdraw Issue $(date +%s)"
+          gh issue create --title "$TITLE" --body "Auto-generated issue for quickdraw badge"
+          ISSUE_NUMBER=$(gh issue list --limit 1 --state open --json number --jq '.[0].number')
+          echo "ISSUE_NUMBER=$ISSUE_NUMBER" >> $GITHUB_ENV
+
+      - name: Wait 180 seconds to simulate reaction time
+        run: sleep 180
+
+      - name: Create branch and fix linked to issue
+        run: |
+          BRANCH="quickdraw/fix-$(date +%s)"
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          git checkout -b $BRANCH
+          mkdir -p quickdraw
+          FILE="quickdraw/fix-$RANDOM.txt"
+          echo "Fix for issue #${ISSUE_NUMBER}" >> $FILE
+          git add .
+          git commit -m "fix: closes #${ISSUE_NUMBER}"
+          git push origin $BRANCH
+
+      - name: Create and merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+        run: |
+          TITLE="Fix for issue #${ISSUE_NUMBER}"
+          gh pr create --title "$TITLE" --body "Automated PR closing issue #${ISSUE_NUMBER}" --head "${{ env.BRANCH }}"
+          gh pr merge --merge --admin --delete-branch

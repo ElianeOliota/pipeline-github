@@ -1,0 +1,23 @@
+name: 006 - Daily Thought Update 🧘‍♂️
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  update-thought:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup environment
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run thought updater script
+        env:
+          GH_ALL_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          chmod +x .github/scripts/update_thought.sh
+          bash .github/scripts/update_thought.sh
