@@ -34,5 +34,5 @@ jobs:
           git checkout -b $BRANCH
           git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
           git push origin $BRANCH
-          gh auth login --with-token <<< "${GH_TOKEN}"
+          echo "${GH_TOKEN}" | gh auth login --with-token
           gh pr create --title "Manual Merge PR with Co-authors" --body "Created by automation, merged manually." --head $BRANCH
