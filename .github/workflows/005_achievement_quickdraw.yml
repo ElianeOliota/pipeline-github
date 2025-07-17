@@ -29,6 +29,8 @@ jobs:
         run: sleep 180
 
       - name: Create branch and fix linked to issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
         run: |
           BRANCH="quickdraw/fix-$(date +%s)"
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
@@ -38,6 +40,7 @@ jobs:
           echo "Fix for issue #${ISSUE_NUMBER}" >> $FILE
           git add .
           git commit -m "fix: closes #${ISSUE_NUMBER}"
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
           git push origin $BRANCH
 
       - name: Create and merge PR
