@@ -8,12 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Authenticate gh CLI
+      - name: Check GitHub CLI authentication
         env:
           GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
-        run: |
-          echo "${GH_TOKEN}" | gh auth login --with-token
-          gh auth status
+        run: gh auth status
 
       - name: Clone repo and create co-authored commits
         env:
