@@ -32,6 +32,7 @@ jobs:
         run: |
           BRANCH="manual/achieve-coauthor-$(date +%s)"
           git checkout -b $BRANCH
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
           git push origin $BRANCH
-          gh auth setup-git
+          gh auth login --with-token <<< "${GH_TOKEN}"
           gh pr create --title "Manual Merge PR with Co-authors" --body "Created by automation, merged manually." --head $BRANCH
