@@ -8,35 +8,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Git
-        run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-
-      - name: Create multiple co-authored commits
-        run: |
-          mkdir -p temp
-          rm -rf temp/*
-          for i in {1..3}; do
-            FILE="temp/commit_$i.txt"
-            echo "Manual staged update $i at $(date -u)" >> $FILE
-            git add $FILE
-            git commit -m "chore: update $i" -m "Co-authored-by: oliota <oliota@users.noreply.github.com>"
-          done
-
-      - name: Push branch and open PR
+      - name: Authenticate gh CLI
         env:
           GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
         run: |
+          echo "${GH_TOKEN}" | gh auth login --with-token
+          gh auth status
+
+      - name: Clone repo and create co-authored commits
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+        run: |
+          REPO=${{ github.repository }}
           BRANCH="manual/achieve-coauthor-$(date +%s)"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+          gh repo clone "$REPO" repo
+          cd repo
           git checkout -b $BRANCH
 
-          # 🚨 Esta linha é obrigatória para autenticar corretamente o git push
-          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+          mkdir -p temp
+          for i in {1..3}; do
+            echo "Update $i at $(date -u)" > "temp/commit_$i.txt"
+            git add "temp/commit_$i.txt"
+            git commit -m "chore: update $i" -m "Co-authored-by: oliota <oliota@users.noreply.github.com>"
+          done
 
-          git push origin $BRANCH
+          git push --set-upstream origin $BRANCH
 
-          echo "${GH_TOKEN}" | gh auth login --with-token
-          gh pr create --title "Manual Merge PR with Co-authors" --body "Created by automation, merged manually." --head $BRANCH
+          gh pr create --title "Manual Merge PR with Co-authors" --body "Created via full-gh automation" --head $BRANCH
