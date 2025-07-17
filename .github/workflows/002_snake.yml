@@ -2,7 +2,7 @@ name: 002 - Generate Snake Animation 🐍
 
 on:
   schedule:
-    - cron: "0 0 * * *" # every hour
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
@@ -20,6 +20,6 @@ jobs:
       - name: Push snake animation to output branch
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          personal_token: ${{ secrets.GH_ALL_TOKEN }}
           publish_branch: output
           publish_dir: ./dist
