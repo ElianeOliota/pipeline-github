@@ -1,0 +1,43 @@
+name: 999 - YOLO Achievement 🧪
+
+on:
+  workflow_dispatch:
+
+jobs:
+  yolo_trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Create and commit change
+        run: |
+          BRANCH="yolo/$(date +%s)"
+          git checkout -b $BRANCH
+          mkdir -p .yolo
+          echo "💣 YOLO triggered at $(date -u)" > ".yolo/yolo_$(date +%s).txt"
+          git add .yolo/
+          git commit -m "YOLO: no review, no problem"
+
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+
+      - name: Push branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+        run: |
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+          git push --set-upstream origin $BRANCH
+
+      - name: Create and merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GH_ALL_TOKEN }}
+        run: |
+          gh pr create --title "YOLO PR 🧪" --body "Fully automated PR to trigger the YOLO achievement." --head $BRANCH --base master
+          PR_NUMBER=$(gh pr list --head "$BRANCH" --json number -q '.[0].number')
+          gh pr merge $PR_NUMBER --merge --delete-branch --admin
